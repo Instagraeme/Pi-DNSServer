@@ -1,0 +1,100 @@
+#!/bin/bash
+
+ask() {
+  # http://djm.me/ask
+  while true; do
+    if [ "${2:-}" = "Y" ]; then
+      prompt="Y/n"
+      default=Y
+    elif [ "${2:-}" = "N" ]; then
+      prompt="y/N"
+      default=N
+    else
+      prompt="y/n"
+      default=
+    fi
+    # Ask the question
+    read -p "$1 [$prompt] " REPLY
+    # Default?
+    if [ -z "$REPLY" ]; then
+      REPLY=$default
+    fi
+    # Check if the reply is valid
+    case "$REPLY" in
+      Y*|y*) return 0 ;;
+    N*|n*) return 1 ;;
+  esac
+done
+}
+
+# header() - echo text in color, if color is not set use red
+# 0 - Black, 1 - Red, 2 - Green, 3 - Yellow, 4 - Blue, 5 - Magenta, 6 - Cyan, 7 - White
+header() {
+  if [ -z "$2" ]; then
+    echo -e "$(tput setaf 1)$1$(tput sgr 0)"
+  else
+    echo -e "$(tput setaf $2)$1$(tput sgr 0)"
+  fi
+}
+
+if [[ $EUID -ne 0 ]]; then
+  header "This script needs to be run as root. Restart with 'sudo $0'"
+  exit 1
+fi
+addhost() {
+  header "\nAdd DNS Entry to dnsmasq hosts" 4
+
+  read -p "Enter Hostname: " HOSTNAME
+  echo -e ""
+
+  # Get and test MAC Address
+
+  REGEX='([0-9A-Fa-f]{2}[:]){5}([0-9A-Fa-f]{2})'
+
+  while true; do
+    read -p "Enter MAC Address of Host: " MAC
+    if ! [[ $MAC =~ $REGEX ]]; then
+      header "Invalid MAC Address" 1
+    else
+      break; 
+    fi
+  done
+  
+  echo -e ""
+  # Get and test IP Address
+
+  REGEX='([0-9]{1,3}\.){3}[0-9]{1,3}'
+  
+  while true; do
+    read -p "Enter IP Address of Host: " IP
+    if ! [[ $IP =~ $REGEX ]]; then
+      header "Invalid IP Address" 1
+    else
+      break;
+    fi
+  done
+  
+  echo -e "\nAdding Hostname: $HOSTNAME, MAC Address: $MAC, and IP Address $IP"
+  if ! ask "Continue?" N; then
+    /etc/init.d/dnsmasq restart
+    exit 0;
+  fi
+
+  echo "dhcp-host=$MAC,$HOSTNAME,$IP" >> /etc/dnsmasq.d/internal.hosts
+}
+
+infinite() {
+header "\nCurrent internal.hosts:"
+cat /etc/dnsmasq.d/internal.hosts
+
+addhost
+
+if ! ask "Add Another?" N; then
+  /etc/init.d/dnsmasq restart
+  exit 0;
+else
+  infinite
+fi
+}
+
+infinite

@@ -1,0 +1,7 @@
+dhcp-host=50:46:5D:8B:41:9E,mediaserver,192.168.2.201
+dhcp-host=54:88:0E:89:E1:71,SamsungTV,192.168.2.211
+dhcp-host=70:9E:29:C7:18:F5,PlayStation4,192.168.2.212
+dhcp-host=B8:27:EB:70:29:9D,TimeMachine,192.168.2.5
+dhcp-host=B8:27:EB:2D:E8:2C,LivingRoomHTPC,192.168.2.213
+dhcp-host=00:1A:22:03:4E:C1,Heating,192.168.2.221
+dhcp-host=6C:B5:6B:71:34:F3,FreeSat,192.168.2.214

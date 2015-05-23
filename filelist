@@ -1,0 +1,7 @@
+/etc/dnsmasq.conf
+/etc/dnsmasq.d/internal.hosts
+/usr/local/bin/addhost
+/usr/local/bin/rmhost
+/usr/local/bin/adblockupdater.sh
+/etc/rc.local
+/etc/ntp.conf

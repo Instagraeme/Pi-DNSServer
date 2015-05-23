@@ -1,0 +1,75 @@
+#!/bin/bash
+
+ask() {
+  # http://djm.me/ask
+  while true; do
+    if [ "${2:-}" = "Y" ]; then
+      prompt="Y/n"
+      default=Y
+    elif [ "${2:-}" = "N" ]; then
+      prompt="y/N"
+      default=N
+    else
+      prompt="y/n"
+      default=
+    fi
+    # Ask the question
+    read -p "$1 [$prompt] " REPLY
+    # Default?
+    if [ -z "$REPLY" ]; then
+      REPLY=$default
+    fi
+    # Check if the reply is valid
+    case "$REPLY" in
+      Y*|y*) return 0 ;;
+    N*|n*) return 1 ;;
+  esac
+done
+}
+
+# header() - echo text in color, if color is not set use red
+# 0 - Black, 1 - Red, 2 - Green, 3 - Yellow, 4 - Blue, 5 - Magenta, 6 - Cyan, 7 - White
+header() {
+  if [ -z "$2" ]; then
+    echo -e "$(tput setaf 1)$1$(tput sgr 0)"
+  else
+    echo -e "$(tput setaf $2)$1$(tput sgr 0)"
+  fi
+}
+
+if [[ $EUID -ne 0 ]]; then
+  header "This script needs to be run as root. Restart with 'sudo $0'"
+  exit 1
+fi
+delhost() {
+  header "\nRemove DNS Entry from dnsmasq hosts" 4
+
+  read -p "Enter Hostname, MAC or IP address: " NEEDLE
+  echo -e ""
+
+  grep -q $NEEDLE /etc/dnsmasq.d/internal.hosts
+
+  if [ $? -ne 0 ]; then
+    echo "$NEEDLE not found in internal.hosts"
+  else
+    sed -i "/$NEEDLE/d" /etc/dnsmasq.d/internal.hosts
+    echo "$NEEDLE removed successfully"
+  fi
+
+}
+
+infinite() {
+header "\nCurrent internal.hosts:"
+cat /etc/dnsmasq.d/internal.hosts
+
+delhost
+
+if ! ask "Delete Another?" N; then
+  /etc/init.d/dnsmasq restart
+  exit 0;
+else
+  infinite
+fi
+}
+
+infinite

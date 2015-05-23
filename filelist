@@ -5,3 +5,8 @@
 /usr/local/bin/adblockupdater.sh
 /etc/rc.local
 /etc/ntp.conf
+/var/spool/cron/crontabs/root
+/etc/lighttpd/lighttpd.conf
+/var/www/index.html
+/var/www/1x1.png
+
